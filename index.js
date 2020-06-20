@@ -16,17 +16,29 @@ function removeGame( name ) {
 }
 
 class WaitHandle {
-	constructor() {
+	constructor(timeoutMs) {
 		const self = this;
+		this._timeoutMs = timeoutMs;
 		this._promise = new Promise( resolve => self._notify = resolve );
 	}
 	notify() {
 		const self = this;
 		const notifyFunc = this._notify;
+		if( this._promise._timeoutHandle ) {
+			clearTimeout( this._promise._timeoutHandle );
+		}
 		this._promise = new Promise( resolve => self._notify = resolve );
 		notifyFunc();
 	}
 	async wait() {
+		if( !this._promise._timeoutHandle ) {
+			const self = this;
+			const promise = this._promise;
+			promise._timeoutHandle = setTimeout( () => {
+				promise._timeoutHandle = false;
+				self.notify();
+			}, this._timeoutMs );
+		}
 		await this._promise;
 	}
 }
@@ -37,7 +49,7 @@ class Game {
 		this.lastUpdate = new Date().getTime();
 		this.version = 1;
 		this._data = "";
-		this._waitHandle = new WaitHandle();
+		this._waitHandle = new WaitHandle(30000);
 	}
 	getData() {
 		return this._data;
