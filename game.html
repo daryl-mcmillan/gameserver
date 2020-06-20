@@ -1,0 +1,33 @@
+<html>
+<script>
+
+async function sleep(ms) {
+	return new Promise( resolve => setTimeout( resolve, ms ) );
+}
+
+async function wait( url ) {
+	console.log( "waiting" );
+	const response = await fetch( url );
+	const body = await response.json();
+	console.log( body );
+	console.log( "done waiting" );
+}
+
+async function run() {
+	const base = 'http://localhost:8080';
+	const response = await fetch( base + '/testw', { method: 'PUT', body: 'test' } );
+	const body = await response.json();
+	console.log( body );
+	
+	wait( base + body.waitForChangeUrl );
+	
+	await sleep(1000);
+	const response2 = await fetch( base + body.updateUrl, { method: 'PUT', body: 'test2' } )
+	const body2 = await response2.json();
+	console.log( body2 );
+}
+
+run();
+
+</script>
+</html>
