@@ -10,6 +10,11 @@ function nameToId( name ) {
 	return id;
 }
 
+function removeGame( name ) {
+	const id = nameToId( name );
+	delete games[id];
+}
+
 class WaitHandle {
 	constructor() {
 		const self = this;
@@ -72,7 +77,7 @@ function writeGame( res, game ) {
 		data: game.getData(),
 		version: game.version,
 		waitForChangeUrl: '/' + game.name + '/' + (game.version+1),
-		updateUrl: '/' + game.name + '/' + game.version
+		updateUrl: '/' + game.name + '/' + (game.version+1)
 	} ) );
 	return true;
 }
@@ -133,8 +138,8 @@ async function updateGameHandler( match, req, res ) {
 	if( !game ) {
 		return notFound( res, "game does not exist" );
 	}
-	if( game.version !== version ) {
-		return badRequest( res, "specified game version does not match current game version" );
+	if( ( game.version + 1 ) !== version ) {
+		return badRequest( res, "specified game version does come immediately after current game version" );
 	}
 	game.updateData( data );
 	writeGame( res, game );

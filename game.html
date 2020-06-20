@@ -1,6 +1,7 @@
 <html>
 <script>
 
+const readBase = "http://127.0.0.2:8080";
 const baseUrl = "http://localhost:8080";
 
 async function sleep(ms) {
@@ -18,11 +19,16 @@ function generateName() {
 async function newGame() {
 	for( ;; ) {
 		const name = generateName();
-		const response = await fetch( baseUrl + '/' + name, { method: 'PUT', body: '{}' });
-		if( response.ok ) {
-			const game = await response.json();
-			console.log( "created new game", game );
-			return game;
+		try {
+			const response = await fetch( baseUrl + '/' + name, { method: 'PUT', body: '{}' });
+			if( response.ok ) {
+				const game = await response.json();
+				console.log( "created new game", game );
+				return game;
+			}
+		} catch( err ) {
+			console.log( "error creating new game", err );
+			await sleep( 5000 );
 		}
 	}
 }
@@ -30,15 +36,20 @@ async function newGame() {
 async function run() {
 	var game = await newGame();
 	for( ;; ) {
-		const response = await fetch( baseUrl + game.waitForChangeUrl );
-		if( !response.ok ) {
-			const err = await response.json();
-			console.log( "got error", err );
+		try {
+			const response = await fetch( readBase + game.waitForChangeUrl );
+			if( !response.ok ) {
+				const err = await response.json();
+				console.log( "error refreshing game state", err );
+				await sleep( 5000 );
+				continue;
+			}
+			game = await response.json();
+			console.log( "new game state", game );
+		} catch( err ) {
+			console.log( "error refreshing game state", err );
 			await sleep( 5000 );
-			continue;
 		}
-		game = await response.json();
-		console.log( "new game state", game );
 	}
 }
 
