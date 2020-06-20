@@ -72,7 +72,7 @@ function writeGame( res, game ) {
 		data: game.getData(),
 		version: game.version,
 		waitForChangeUrl: '/' + game.name + '/' + (game.version+1),
-		updateUrl: '/' + game.name + '/' + game.version + '/update'
+		updateUrl: '/' + game.name + '/' + game.version
 	} ) );
 	return true;
 }
@@ -158,7 +158,7 @@ const handlers = [
 
 ];
 
-const listener = function( req, res ) {
+const listener = async function( req, res ) {
 	console.log( req.method, req.url );
 	res.setHeader( 'Access-Control-Allow-Origin', '*' );
 	res.setHeader( 'Access-Control-Allow-Methods', 'OPTIONS, GET, PUT' );
@@ -168,7 +168,11 @@ const listener = function( req, res ) {
 		}
 		const match = req.url.match( handler.pattern );
 		if( match ) {
-			handler.handler( match, req, res );
+			try {
+				await handler.handler( match, req, res );
+			} catch( err ) {
+				console.log( err );
+			}
 			return;
 		}
 	}
