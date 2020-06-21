@@ -10,9 +10,19 @@ function nameToId( name ) {
 	return id;
 }
 
+function getGame( name ) {
+	const id = nameToId( name );
+	return games[ id ];
+}
+
 function removeGame( name ) {
 	const id = nameToId( name );
 	delete games[id];
+}
+
+function addGame( name, game ) {
+	const id = nameToId( name );
+	games[ id ] = game;
 }
 
 class WaitHandle {
@@ -117,21 +127,20 @@ async function readBody( req ) {
 
 async function newGameHandler( match, req, res ) {
 	const name = match[1];
-	const id = nameToId( name );
 	const data = await readBody( req );
-	if( games[id] ) {
+	if( getGame( name ) ) {
 		return badRequest( res, "game already exists" );
 	}
 	const game = new Game( name );
 	game.updateData( data );
-	games[id] = game;
+	addGame( name, game );
 	writeGame( res, game );
 }
 
 async function getGameHandler( match, req, res ) {
 	const name = match[1];
 	const version = parseInt( match[2] );
-	const game = games[ nameToId( name ) ];
+	const game = getGame( name );
 	if( !game ) {
 		return notFound( res, "game does not exist" );
 	}
@@ -143,10 +152,9 @@ async function getGameHandler( match, req, res ) {
 
 async function updateGameHandler( match, req, res ) {
 	const name = match[1];
-	const id = nameToId( name );
 	const data = await readBody( req );
 	const version = parseInt( match[2] );
-	const game = games[ id ];
+	const game = getGame( name );
 	if( !game ) {
 		return notFound( res, "game does not exist" );
 	}
