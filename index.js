@@ -1,5 +1,47 @@
 const http = require( 'http' );
 
+class LinkedList {
+	constructor() {
+		this.count = 0;
+		this.first = {};
+		this.last = {};
+		this.first.next = this.last;
+		this.last.previous = this.first;
+	}
+	add( item ) {
+		const self = this;
+		const previous = this.first;
+		const next = this.first.next;
+		const entry = {
+			item: item,
+			previous: previous,
+			next: next,
+			remove: function() {
+				entry.previous.next = entry.next;
+				entry.next.previous = entry.previous;
+				entry.remove = function() {};
+				self.count --;
+			},
+			moveToFront: function() {
+				// remove
+				entry.previous.next = entry.next;
+				entry.next.previous = entry.previous;
+				
+				// re-add
+				entry.previous = self.first;
+				entry.next = self.first.next;
+				self.first.next.previous = entry;
+				self.first.next = entry;
+			}
+		};
+		previous.next = entry;
+		next.previous = entry;
+		self.count ++;
+		return entry;
+	}
+}
+
+const gameslru = new LinkedList();
 const games = {};
 
 function nameToId( name ) {
@@ -12,17 +54,26 @@ function nameToId( name ) {
 
 function getGame( name ) {
 	const id = nameToId( name );
-	return games[ id ];
+	const gameEntry = games[ id ];
+	if( gameEntry ) {
+		gameEntry.moveToFront();
+		return gameEntry.item;
+	}
 }
 
 function removeGame( name ) {
 	const id = nameToId( name );
+	const gameEntry = games[ id ];
+	if( gameEntry.remove ) {
+		gameEntry.remove();
+	}
 	delete games[id];
 }
 
 function addGame( name, game ) {
 	const id = nameToId( name );
-	games[ id ] = game;
+	const gameEntry = gameslru.add( game );
+	games[ id ] = gameEntry;
 }
 
 class WaitHandle {

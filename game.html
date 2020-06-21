@@ -33,8 +33,17 @@ async function newGame() {
 	}
 }
 
+async function update( game ) {
+	for( ;; ) {
+		const response = await fetch( baseUrl + game.updateUrl, { method: 'PUT', body: 'stuff' } );
+		game = await response.json();
+		await sleep( 5000 );
+	}
+}
+
 async function run() {
 	var game = await newGame();
+	update( game );
 	for( ;; ) {
 		try {
 			const response = await fetch( readBase + game.waitForChangeUrl );
